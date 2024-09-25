@@ -1,9 +1,9 @@
-name: Deploy Moodle
+name: Deploy to EC2
 
 on:
   push:
     branches:
-      - moodle-app  # Trigger deployment when pushing to this branch
+      - moodle-app  # Trigger the workflow on pushes to this branch
 
 jobs:
   deploy:
@@ -13,18 +13,15 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Set up PHP
-      uses: shivammathur/setup-php@v2
+    - name: Set up SSH
+      uses: webfactory/ssh-agent@v0.5.3
       with:
-        php-version: '8.3'  # Adjust to your PHP version
-        extensions: mbstring, xml, curl, zip, gd, intl, soap
+        ssh-private-key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
 
-    - name: Deploy to EC2
-      env:
-        EC2_SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+    - name: Copy files to EC2
       run: |
-        mkdir -p ~/.ssh
-        echo "$EC2_SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H 13.58.152.168 >> ~/.ssh/known_hosts
-        rsync -avz --delete ./ ubuntu@13.58.152.168:/var/www/html/moodle
+        scp -r -o StrictHostKeyChecking=no ./ ubuntu@13.58.152.168:/var/www/html/moodle
+
+    - name: Run deployment script
+      run: |
+        ssh -o StrictHostKeyChecking=no ubuntu@13.58.152.168 'cd /var/www/html/moodle && composer install && php admin/tool/cli/cron.php'
