@@ -1,0 +1,30 @@
+name: Deploy Moodle
+
+on:
+  push:
+    branches:
+      - moodle-app  # Trigger deployment when pushing to this branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.3'  # Adjust to your PHP version
+        extensions: mbstring, xml, curl, zip, gd, intl, soap
+
+    - name: Deploy to EC2
+      env:
+        EC2_SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+      run: |
+        mkdir -p ~/.ssh
+        echo "$EC2_SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H 13.58.152.168 >> ~/.ssh/known_hosts
+        rsync -avz --delete ./ ubuntu@13.58.152.168:/var/www/html/moodle
