@@ -1,5 +1,5 @@
 <?php
-
+echo '<h1>Success! Changes made to Moodle on EC2</h1>';
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
