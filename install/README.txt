@@ -1,3 +1,4 @@
+File Edited on Github and deployed to WeCode KC EC2
 The file stringnames.txt contains a list of all the strings used during the install process.
 
 A daily cron job will pick up the changes to this file and update all the language files
